@@ -1,6 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import random
+import tmdbsimple as tmdb
+from config import *
+import json
+tmdb.API_KEY = tmdb_key
+tmdb.REQUESTS_TIMEOUT = 5
+header = tmdb_access_token
+
 
 def get_rating(movie_title: str) -> float:
     film = movie_title.strip().lower().replace(' ', '-').replace(':', '').replace('.', '').replace('(', '').replace(')', '')
@@ -24,11 +31,32 @@ def print_rules():
 
 def play_guesser():
     movies_list = ['Barbie', 'Wonka', 'Scott Pilgrim vs. the World', 'Hereditary', 'Dune (2021)', 'Spider-Man: Across the Spider-Verse', 'Spider-Man: Into the Spider-Verse', 'The Lighthouse (2019)', 'Smile (2022)', 'The Croods', 'Beau Is Afraid', 'Barbarian (2022)', 'Cocaine Bear', 'Fantastic Mr. Fox', 'Despicable Me', 'Joker', 'Avengers: Endgame']
-
+    
     print_rules()
     
     while True:
-        movie = random.choice(movies_list)
+        # movie = random.choice(movies_list)
+        movie = 'Wonka'
+        search = tmdb.Search()
+        response = search.movie(query=movie)
+        movie_id = search.results[0]['id']
+        print(movie_id)
+        # movie_tmdb = tmdb.Movies(int(movie_id))
+        # response = movie_tmdb.info()
+        print(type(movie_id))
+        url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits?language=en-US"
+
+        headers = {
+            "accept": "application/json",
+            "Authorization": f"Bearer {tmdb_access_token}"
+        }
+
+        response = requests.get(url, headers=headers)
+        
+        # print(response.text)
+        d = json.loads(response.text)
+        # print(d['cast'][0]['name'])
+
         print(f'The movie you will be guessing this round is: {movie}')
         rating = get_rating(movie)
         points = 0
